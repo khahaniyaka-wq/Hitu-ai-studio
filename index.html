@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hitu AI Studio</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#10101c;color:white;
+ font-family:Arial,sans-serif
+}
+header{
+ background:#1c1930;padding:20px;
+ color:#bd9cff;font-size:24px;font-weight:bold
+}
+main{max-width:750px;margin:auto;padding:20px}
+h1{font-size:28px}
+p{color:#aaa}
+.card{
+ background:#1d1b30;padding:18px;
+ border:1px solid #39344f;border-radius:15px;
+ margin-top:20px
+}
+textarea,select{
+ width:100%;padding:14px;margin-top:10px;
+ background:#11111e;color:white;
+ border:1px solid #50486b;border-radius:9px;
+ font-size:15px
+}
+textarea{height:130px}
+label{display:block;margin-top:18px}
+.grid{
+ display:grid;grid-template-columns:1fr 1fr;gap:10px
+}
+button{
+ padding:14px;background:#37304f;
+ color:white;border:0;border-radius:9px;
+ font-size:15px
+}
+.active,.generate{background:#8055e8}
+.generate{width:100%;margin-top:20px}
+#result{
+ display:none;background:#11111e;
+ padding:15px;margin-top:15px;border-radius:10px
+}
+footer{text-align:center;color:#aaa;padding:25px}
+</style>
+</head>
+<body>
+
+<header>🎬 Hitu AI Studio</header>
+
+<main>
+<h1>Create Your AI Video</h1>
+<p>Make amazing AI videos from your stories.</p>
+
+<div class="card">
+<h3>Select Video Generator</h3>
+
+<div class="grid">
+<button class="active" onclick="mode(this,'Text to Video')">Text to Video</button>
+<button onclick="mode(this,'Image to Video')">Image to Video</button>
+<button onclick="mode(this,'2D Cartoon Story')">2D Cartoon</button>
+<button onclick="mode(this,'AI Image')">AI Image</button>
+</div>
+
+<label>Write Your Story</label>
+<textarea id="story" placeholder="अपनी कहानी यहां लिखें..."></textarea>
+
+<label>Upload Image</label>
+<input type="file" id="photo" accept="image/*">
+
+<label>Video Size</label>
+<select id="ratio">
+<option>16:9</option>
+<option>9:16</option>
+<option>1:1</option>
+</select>
+
+<label>Video Quality</label>
+<select id="quality">
+<option>HD</option>
+<option>Full HD</option>
+<option>4K</option>
+</select>
+
+<label>Voice Language</label>
+<select id="language">
+<option>Hindi</option>
+<option>Gujarati</option>
+<option>English</option>
+</select>
+
+<button class="generate" onclick="generate()">
+✨ Generate Video
+</button>
+
+<div id="result"></div>
+</div>
+</main>
+
+<footer>© 2026 Hitu AI Studio</footer>
+
+<script>
+let selected="Text to Video";
+
+function mode(btn,name){
+ selected=name;
+ document.querySelectorAll('.grid button')
+ .forEach(b=>b.classList.remove('active'));
+ btn.classList.add('active');
+}
+
+function generate(){
+ let story=document.getElementById('story').value.trim();
+ let result=document.getElementById('result');
+
+ if(!story){
+ alert("Please write your story!");
+ return;
+ }
+
+ result.style.display="block";
+ result.innerHTML=
+ "<h3>Project Created!</h3>"+
+ "Mode: "+selected+
+ "<br>Video Size: "+document.getElementById('ratio').value+
+ "<br>Quality: "+document.getElementById('quality').value+
+ "<br>Language: "+document.getElementById('language').value+
+ "<br><br>AI Video API is not connected yet.";
+}
+</script>
+
+</body>
+  </html>
+  
