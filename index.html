@@ -1,139 +1,146 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="gu">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hitu AI Studio</title>
 <style>
 *{box-sizing:border-box}
-body{
- margin:0;background:#10101c;color:white;
- font-family:Arial,sans-serif
-}
-header{
- background:#1c1930;padding:20px;
- color:#bd9cff;font-size:24px;font-weight:bold
-}
-main{max-width:750px;margin:auto;padding:20px}
-h1{font-size:28px}
-p{color:#aaa}
-.card{
- background:#1d1b30;padding:18px;
- border:1px solid #39344f;border-radius:15px;
- margin-top:20px
-}
-textarea,select{
- width:100%;padding:14px;margin-top:10px;
- background:#11111e;color:white;
- border:1px solid #50486b;border-radius:9px;
- font-size:15px
-}
-textarea{height:130px}
-label{display:block;margin-top:18px}
-.grid{
- display:grid;grid-template-columns:1fr 1fr;gap:10px
-}
-button{
- padding:14px;background:#37304f;
- color:white;border:0;border-radius:9px;
- font-size:15px
-}
-.active,.generate{background:#8055e8}
-.generate{width:100%;margin-top:20px}
-#result{
- display:none;background:#11111e;
- padding:15px;margin-top:15px;border-radius:10px
-}
-footer{text-align:center;color:#aaa;padding:25px}
+body{margin:0;padding:20px;background:#10101d;color:white;font-family:Arial,sans-serif}
+.container{max-width:650px;margin:auto;background:#1c1c30;padding:22px;border-radius:18px}
+h1{text-align:center;color:#9b8cff}
+p{text-align:center;color:#ccc}
+button,input,textarea,select{width:100%;padding:13px;margin:8px 0;border:0;border-radius:9px;font-size:16px}
+button{background:#7357ed;color:white;font-weight:bold}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modes button{background:#34334c}
+.modes button.active{background:#7357ed}
+label{display:block;margin-top:12px;color:#ddd}
+#result{margin-top:18px;padding:12px;background:#292941;border-radius:10px;overflow-wrap:anywhere}
+video,img{width:100%;margin-top:12px;border-radius:10px}
 </style>
 </head>
 <body>
+<div class="container">
+<h1>✨ Hitu AI Studio</h1>
+<p>AI Image અને Video Generator</p>
 
-<header>🎬 Hitu AI Studio</header>
-
-<main>
-<h1>Create Your AI Video</h1>
-<p>Make amazing AI videos from your stories.</p>
-
-<div class="card">
-<h3>Select Video Generator</h3>
-
-<div class="grid">
-<button class="active" onclick="mode(this,'Text to Video')">Text to Video</button>
-<button onclick="mode(this,'Image to Video')">Image to Video</button>
-<button onclick="mode(this,'2D Cartoon Story')">2D Cartoon</button>
-<button onclick="mode(this,'AI Image')">AI Image</button>
+<h3>Mode પસંદ કરો</h3>
+<div class="modes">
+<button class="active" onclick="setMode(this,'video')">Text to Video</button>
+<button onclick="setMode(this,'imageVideo')">Image to Video</button>
+<button onclick="setMode(this,'cartoon')">2D Cartoon</button>
+<button onclick="setMode(this,'image')">AI Image</button>
 </div>
 
-<label>Write Your Story</label>
-<textarea id="story" placeholder="अपनी कहानी यहां लिखें..."></textarea>
+<label>તમારો Prompt લખો</label>
+<textarea id="prompt" rows="5" placeholder="તમારે કેવો ફોટો કે વીડિયો બનાવવો છે?"></textarea>
 
-<label>Upload Image</label>
-<input type="file" id="photo" accept="image/*">
+<div id="imageBox" style="display:none">
+<label>Image URL નાખો</label>
+<input id="imageUrl" type="url" placeholder="https://example.com/image.jpg">
+</div>
 
 <label>Video Size</label>
 <select id="ratio">
-<option>16:9</option>
-<option>9:16</option>
-<option>1:1</option>
+<option value="16:9">Landscape 16:9</option>
+<option value="9:16">Portrait 9:16</option>
 </select>
 
-<label>Video Quality</label>
+<label>Quality</label>
 <select id="quality">
-<option>HD</option>
-<option>Full HD</option>
-<option>4K</option>
+<option value="standard">Standard</option>
 </select>
 
-<label>Voice Language</label>
-<select id="language">
-<option>Hindi</option>
-<option>Gujarati</option>
-<option>English</option>
-</select>
-
-<button class="generate" onclick="generate()">
-✨ Generate Video
-</button>
-
-<div id="result"></div>
+<button id="generateBtn" onclick="generate()">🚀 Generate</button>
+<div id="result" style="display:none"></div>
 </div>
-</main>
-
-<footer>© 2026 Hitu AI Studio</footer>
 
 <script>
-let selected="Text to Video";
+const API="https://hitu-ai-backend.khahaniyaka-wq.workers.dev";
+let selected="video";
 
-function mode(btn,name){
- selected=name;
- document.querySelectorAll('.grid button')
- .forEach(b=>b.classList.remove('active'));
- btn.classList.add('active');
+function setMode(btn,mode){
+ selected=mode;
+ document.querySelectorAll(".modes button").forEach(b=>b.classList.remove("active"));
+ btn.classList.add("active");
+ document.getElementById("imageBox").style.display=mode==="imageVideo"?"block":"none";
 }
 
-function generate(){
- let story=document.getElementById('story').value.trim();
- let result=document.getElementById('result');
+function show(message){
+ const box=document.getElementById("result");
+ box.style.display="block";
+ box.textContent=message;
+}
 
- if(!story){
- alert("Please write your story!");
- return;
+async function generate(){
+ const prompt=document.getElementById("prompt").value.trim();
+ const imageUrl=document.getElementById("imageUrl").value.trim();
+ const btn=document.getElementById("generateBtn");
+
+ if(!prompt){alert("કૃપા કરીને Prompt લખો");return}
+ if(selected==="imageVideo"&&!imageUrl){alert("Image URL નાખો");return}
+
+ btn.disabled=true;
+ btn.textContent="Generating...";
+ show("AI કામ શરૂ કરી રહ્યું છે...");
+
+ try{
+  const mode=selected==="cartoon"?"video":selected;
+  const finalPrompt=selected==="cartoon"?"2D cartoon animation style: "+prompt:prompt;
+
+  const response=await fetch(API+"/generate",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({mode,prompt:finalPrompt,image_url:imageUrl})
+  });
+
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||JSON.stringify(data));
+
+  const requestId=data.request_id||data.requestId;
+  const model=data.model;
+  if(!requestId||!model)throw new Error("Backend request ID અથવા model મળ્યું નથી.");
+
+  let completed=false;
+  for(let i=0;i<60;i++){
+   await new Promise(resolve=>setTimeout(resolve,5000));
+   const r=await fetch(API+"/status?model="+encodeURIComponent(model)+"&request_id="+encodeURIComponent(requestId));
+   const s=await r.json();
+   if(s.status==="COMPLETED"){completed=true;break}
+   if(s.status==="FAILED")throw new Error(s.error||"Generation નિષ્ફળ ગયું.");
+   show("AI બનાવી રહ્યું છે... "+((i+1)*5)+" સેકન્ડ");
+  }
+
+  if(!completed)throw new Error("સમય પૂરો થયો. ફરી પ્રયાસ કરો.");
+
+  const r=await fetch(API+"/result?model="+encodeURIComponent(model)+"&request_id="+encodeURIComponent(requestId));
+  const output=await r.json();
+  if(!r.ok)throw new Error(JSON.stringify(output));
+
+  const videoUrl=output.video?.url||output.video_url||output.data?.video?.url;
+  const imageResult=output.images?.[0]?.url||output.image?.url||output.data?.images?.[0]?.url;
+  const box=document.getElementById("result");
+  box.innerHTML="<h3>તમારું પરિણામ!</h3>";
+
+  if(videoUrl){
+   const v=document.createElement("video");
+   v.src=videoUrl;v.controls=true;v.playsInline=true;
+   box.appendChild(v);
+  }else if(imageResult){
+   const img=document.createElement("img");
+   img.src=imageResult;box.appendChild(img);
+  }else{
+   show("પરિણામ મળ્યું, પરંતુ તેની લિંક મળી નથી: "+JSON.stringify(output));
+  }
+ }catch(error){
+  show("Error: "+error.message);
+ }finally{
+  btn.disabled=false;
+  btn.textContent="🚀 Generate";
  }
-
- result.style.display="block";
- result.innerHTML=
- "<h3>Project Created!</h3>"+
- "Mode: "+selected+
- "<br>Video Size: "+document.getElementById('ratio').value+
- "<br>Quality: "+document.getElementById('quality').value+
- "<br>Language: "+document.getElementById('language').value+
- "<br><br>AI Video API is not connected yet.";
 }
 </script>
-
 </body>
-  </html>
-  
-
+</html>
