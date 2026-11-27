@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="gu">
 <head>
@@ -6,39 +5,282 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hitu AI Studio</title>
 <style>
-body {
-  margin: 0;
-  padding: 20px;
-  background: #10101d;
-  color: white;
-  font-family: Arial, sans-serif;
+*{box-sizing:border-box}
+body{
+ margin:0;padding:18px;background:#090914;
+ color:white;font-family:Arial,sans-serif
 }
-.container {
-  max-width: 650px;
-  margin: auto;
-  background: #1c1c30;
-  padding: 22px;
-  border-radius: 18px;
+.container{max-width:650px;margin:auto}
+header{text-align:center;padding:20px}
+h1{color:#a995ff}
+.panel{
+ background:#19192b;padding:20px;
+ border-radius:18px;margin-bottom:18px;
+ border:1px solid #30304a
 }
-h1 {
-  text-align: center;
-  color: #9b8cff;
+h2{color:#b6a5ff}
+label{display:block;margin:14px 0 8px}
+select,textarea,input{
+ width:100%;padding:13px;background:#101020;
+ color:white;border:1px solid #444466;
+ border-radius:10px;font-size:15px
 }
-button {
-  width: 100%;
-  padding: 14px;
-  background: #7357ed;
-  color: white;
-  border: 0;
-  border-radius: 9px;
+textarea{min-height:100px}
+button{
+ width:100%;padding:14px;margin-top:12px;
+ border:0;border-radius:10px;
+ background:linear-gradient(90deg,#7357ed,#a35cf5);
+ color:white;font-size:16px;font-weight:bold
+}
+.small{background:#30304c}
+#status{text-align:center;color:#b9aaff}
+#result{text-align:center;overflow-wrap:anywhere}
+#result img,#result video{
+ width:100%;border-radius:12px;margin-top:12px
 }
 </style>
 </head>
 <body>
 <div class="container">
-<h1>Hitu AI Studio ✨</h1>
-<p>Welcome to Hitu AI Studio</p>
-<button onclick="alert('Website Working!')">Test Button</button>
+
+<header>
+<h1>✨ Hitu AI Studio</h1>
+<p>તમારી કલ્પનાને AI થી બનાવો</p>
+</header>
+
+<div class="panel">
+<h2>🎤 Voice Studio</h2>
+
+<label>ભાષા પસંદ કરો</label>
+<select id="language">
+<option value="gu-IN">ગુજરાતી</option>
+<option value="hi-IN">હિન્દી</option>
+<option value="en-IN">English</option>
+</select>
+
+<label>તમારો Prompt લખો અથવા બોલો</label>
+<textarea id="prompt" placeholder="અહીં લખો અથવા માઇક દબાવીને બોલો..."></textarea>
+
+<button onclick="startVoice()">🎙️ બોલીને લખો</button>
+<button class="small" onclick="stopVoice()">⏹️ માઇક બંધ કરો</button>
+<button onclick="speakText()">🔊 અવાજમાં સાંભળો</button>
+<button class="small" onclick="stopSpeaking()">🔇 અવાજ બંધ કરો</button>
+
+<p id="voiceStatus"></p>
 </div>
+
+<div class="panel">
+<h2>🎨 AI Creation Studio</h2>
+
+<label>શું બનાવવું છે?</label>
+<select id="mode">
+<option value="image">AI Image</option>
+<option value="video">AI Video</option>
+<option value="imageVideo">Image to Video</option>
+</select>
+
+<div id="imageInput" style="display:none">
+<label>Image URL</label>
+<input id="imageUrl" type="url" placeholder="https://example.com/image.jpg">
+</div>
+
+<button onclick="generate()">🚀 Generate કરો</button>
+<p id="status"></p>
+<div id="result"></div>
+</div>
+
+<footer style="text-align:center;color:#888;padding:20px">
+© 2026 Hitu AI Studio
+</footer>
+</div>
+
+<script>
+let recognition = null;
+
+const language = document.getElementById("language");
+const promptBox = document.getElementById("prompt");
+const voiceStatus = document.getElementById("voiceStatus");
+
+function startVoice(){
+ const SpeechRecognition =
+ window.SpeechRecognition || window.webkitSpeechRecognition;
+
+ if(!SpeechRecognition){
+  voiceStatus.textContent =
+  "તમારા Browser માં Voice Input સપોર્ટ નથી. Chrome માં ખોલો.";
+  return;
+ }
+
+ if(recognition) recognition.stop();
+
+ recognition = new SpeechRecognition();
+ recognition.lang = language.value;
+ recognition.continuous = false;
+ recognition.interimResults = false;
+
+ recognition.onstart = () => {
+  voiceStatus.textContent = "હવે બોલો... 🎤";
+ };
+
+ recognition.onresult = (event) => {
+  const words = event.results[0][0].transcript;
+  promptBox.value += (promptBox.value ? " " : "") + words;
+  voiceStatus.textContent = "તમારો અવાજ લખાઈ ગયો.";
+ };
+
+ recognition.onerror = () => {
+  voiceStatus.textContent = "માઇક ચાલુ ન થયો. ફરી પ્રયાસ કરો.";
+ };
+
+ recognition.onend = () => {
+  recognition = null;
+ };
+
+ recognition.start();
+}
+
+function stopVoice(){
+ if(recognition) recognition.stop();
+ voiceStatus.textContent = "માઇક બંધ છે.";
+}
+
+function speakText(){
+ if(!("speechSynthesis" in window)){
+  voiceStatus.textContent = "Voice Output સપોર્ટ નથી.";
+  return;
+ }
+
+ const text = promptBox.value.trim();
+ if(!text){
+  voiceStatus.textContent = "પહેલાં કંઈક લખો અથવા બોલો.";
+  return;
+ }
+
+ speechSynthesis.cancel();
+
+ const speech = new SpeechSynthesisUtterance(text);
+ speech.lang = language.value;
+ speech.rate = 0.9;
+ speechSynthesis.speak(speech);
+
+ voiceStatus.textContent = "અવાજ ચાલુ છે... 🔊";
+}
+
+function stopSpeaking(){
+ speechSynthesis.cancel();
+ voiceStatus.textContent = "અવાજ બંધ છે.";
+}
+
+const mode = document.getElementById("mode");
+mode.addEventListener("change", () => {
+ document.getElementById("imageInput").style.display =
+ mode.value === "imageVideo" ? "block" : "none";
+});
+
+async function generate(){
+ const BACKEND =
+ "https://hitu-ai-backend.khahaniyaka.workers.dev";
+
+ const status = document.getElementById("status");
+ const result = document.getElementById("result");
+ const prompt = promptBox.value.trim();
+ const imageUrl = document.getElementById("imageUrl").value.trim();
+
+ result.innerHTML = "";
+
+ if(!prompt){
+  status.textContent = "કૃપા કરીને Prompt લખો.";
+  return;
+ }
+
+ if(mode.value === "imageVideo" && !imageUrl){
+  status.textContent = "Image URL નાખો.";
+  return;
+ }
+
+ try{
+  status.textContent = "AI સાથે જોડાઈ રહ્યા છીએ...";
+
+  const response = await fetch(BACKEND + "/generate",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({
+    mode:mode.value,
+    prompt:prompt,
+    image_url:imageUrl
+   })
+  });
+
+  const data = await response.json();
+
+  if(!response.ok || data.success === false){
+   throw new Error(data.message || "Generation શરૂ થઈ નથી.");
+  }
+
+  const requestId = data.request_id || data.requestId;
+  const model = data.model;
+
+  if(!requestId || !model){
+   throw new Error("Backend response અધૂરો છે.");
+  }
+
+  status.textContent = "AI તમારી રચના બનાવી રહ્યું છે...";
+
+  for(let i=0;i<60;i++){
+   await new Promise(resolve => setTimeout(resolve,5000));
+
+   const check = await fetch(
+    BACKEND + "/status?model=" +
+    encodeURIComponent(model) +
+    "&request_id=" + encodeURIComponent(requestId)
+   );
+
+   const state = await check.json();
+
+   if(state.status === "FAILED" || state.status === "ERROR"){
+    throw new Error("Generation નિષ્ફળ થયું.");
+   }
+
+   if(state.status === "COMPLETED"){
+    const finalResponse = await fetch(
+     BACKEND + "/result?model=" +
+     encodeURIComponent(model) +
+     "&request_id=" + encodeURIComponent(requestId)
+    );
+
+    const finalData = await finalResponse.json();
+
+    const output = finalData.video?.url ||
+     finalData.video_url ||
+     finalData.images?.[0]?.url ||
+     finalData.image?.url;
+
+    if(!output) throw new Error("Result મળ્યું નથી.");
+
+    if(mode.value === "image"){
+     const img = document.createElement("img");
+     img.src = output;
+     img.alt = "AI Image";
+     result.appendChild(img);
+    }else{
+     const video = document.createElement("video");
+     video.src = output;
+     video.controls = true;
+     video.playsInline = true;
+     result.appendChild(video);
+    }
+
+    status.textContent = "તમારી રચના તૈયાર છે! 🎉";
+    return;
+   }
+  }
+
+  throw new Error("સમય પૂરો થયો. ફરી પ્રયાસ કરો.");
+
+ }catch(error){
+  status.textContent = "ભૂલ: " + error.message;
+ }
+}
+</script>
 </body>
 </html>
